@@ -64,8 +64,28 @@ app.get('/health', (req,res) => {
 });
 
 app.get('/', (req,res) => {
-    res.json({ "name": "Task API", "version": "1.0", "endpoints": ["/tasks"] });
+    res.status(200).json({ "name": "Task API", "version": "1.0", "endpoints": ["/tasks"] });
 });
+
+const tasks = [
+  {"id": 1, "title": "exam prep", "done": true}, 
+  {"id": 2, "title": "homework", "done": false}, 
+  {"id": 3, "title": "grocery shopping", "done": false}
+];
+
+app.get('/tasks', (req, res) => {
+  res.status(200).json(tasks);
+});
+
+app.get('/tasks/:id', (req, res) => {
+  const task = tasks.find(t => String(t.id) === req.params.id);
+  if(task) {
+    res.status(200).json(task);
+  } else {
+    res.status(404).json({"error": `Task '${req.params.id}' not found`});
+  }
+})
+
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
