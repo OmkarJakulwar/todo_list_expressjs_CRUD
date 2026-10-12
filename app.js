@@ -1,62 +1,13 @@
 const express = require('express')
-const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json'); // Read the auto-generated file
 const port = 3000;
 const app = express();
 // Built-in Express middleware that intercepts incoming HTTP requests with Content-Type: application/json
 app.use(express.json());
 
-// Swagger definition options
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'List Manager API',
-      version: '1.0.0',
-      description: 'API documentation for testing /addlist'
-    },
-    servers: [{ url: 'http://localhost:3000' }]
-  },
-  apis: ['./app.js'], // Points to this file for JSDoc comments
-};
-
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
 // Serve Swagger UI at /api-docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-/**
- * @swagger
- * /addlist:
- *   post:
- *     summary: Add a new item to the list
- *     tags: [Lists]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               index:
- *                 type: integer
- *                 example: 1
- *               name:
- *                 type: string
- *                 example: exam prep
- *     responses:
- *       201:
- *         description: Item created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 index:
- *                   type: integer
- *                 name:
- *                   type: string
- */
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //checks server is alive
 app.get('/health', (req,res) => {
@@ -85,6 +36,28 @@ app.get('/tasks/:id', (req, res) => {
     res.status(404).json({"error": `Task '${req.params.id}' not found`});
   }
 })
+
+app.post('/tasks/add', (req, res) => {
+  const {title} = req.body;
+
+  console.log('Received task', title);
+
+  if(!title || typeof title !== 'string') {
+    return res.status(400).json({"error": "Invalid task data"});
+  }
+  // set done to false if added the new task
+  const newTask = {
+    id: tasks.length + 1,
+    title: title,
+    done: false
+  };
+  tasks.push(newTask);
+  res.status(201).json({
+    status: "Created",
+    message: "Task added successfully",
+    task: newTask
+  });
+});
 
 
 app.listen(port, () => {
