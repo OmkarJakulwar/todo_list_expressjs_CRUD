@@ -1,13 +1,14 @@
 const express = require('express')
 const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger-output.json'); // Read the auto-generated file
+const swaggerDocument = require('./openapi.json'); // Read the auto-generated file
 const port = 3000;
 const app = express();
+
 // Built-in Express middleware that intercepts incoming HTTP requests with Content-Type: application/json
 app.use(express.json());
 
-// Serve Swagger UI at /api-docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Serve Swagger UI at /docs
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //checks server is alive
 app.get('/health', (req,res) => {
@@ -59,6 +60,35 @@ app.post('/tasks/add', (req, res) => {
   });
 });
 
+app.put('/tasks/:id', (req, res) => {
+  const task = tasks.find(t => String(t.id) === req.params.id);
+  if(!task) {
+    return res.status(404).json({"error": `Unknown Task Id: '${req.params.id}'`});
+  }
+  const {title} = req.body;
+  if(!title || typeof title !== 'string') {
+    return res.status(400).json({"error": "Invalid task data"});
+  }
+  task.title = title;
+  res.status(200).json({
+    status: "Updated",
+    message: "Task updated successfully",
+    task: task
+  });
+});
+
+
+app.delete('/tasks/:id', (req, res) => {
+  const taskIndex = tasks.findIndex(t => String(t.id) === req.params.id);
+  if (taskIndex === -1) {
+    return res.status(404).json({"error": `Unknown Task Id: '${req.params.id}'`});
+  }
+  tasks.splice(taskIndex, 1);
+  res.status(204).json({
+    status: "Deleted",
+    message: `Task with ID ${req.params.id} deleted successfully`
+  });
+});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

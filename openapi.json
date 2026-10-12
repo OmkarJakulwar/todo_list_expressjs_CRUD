@@ -1,0 +1,289 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Task Manager API",
+    "version": "1.0.0",
+    "description": "Complete central configuration file describing all CRUD task endpoints."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Check server health",
+        "description": "Confirms the Express server is up and listening for requests.",
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Get API metadata",
+        "description": "Returns descriptive metadata regarding versioning and endpoints configuration.",
+        "responses": {
+          "200": {
+            "description": "Returns details about the API",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string", "example": "Task API" },
+                    "version": { "type": "string", "example": "1.0" },
+                    "endpoints": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "example": ["/tasks"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "Get all tasks",
+        "description": "Retrieves the complete list of tasks currently held in server memory.",
+        "responses": {
+          "200": {
+            "description": "A list of stored tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/add": {
+      "post": {
+        "summary": "Add a new task",
+        "description": "Creates a task. The server automatically assigns a unique ID and sets 'done' to false.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": { "type": "string", "example": "Finish my homework" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Created" },
+                    "task": { "$ref": "#/components/schemas/Task" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { 
+            "description": "Bad Request - Missing or invalid title validation" 
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "summary": "Get a specific task by ID",
+        "description": "Locates and extracts a single task instance using its exact unique identifier.",
+        "parameters": [
+          { 
+            "name": "id", 
+            "in": "path", 
+            "required": true, 
+            "schema": { "type": "integer" },
+            "description": "The numeric ID of the target task"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task successfully found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
+            }
+          },
+          "404": { "description": "Task ID not found" }
+        }
+      },
+      "put": {
+        "summary": "Replace an entire task resource completely",
+        "description": "Overwrites the targeted task object configuration. Replaces all descriptive elements entirely.",
+        "parameters": [
+          { 
+            "name": "id", 
+            "in": "path", 
+            "required": true, 
+            "schema": { "type": "integer" },
+            "description": "The numeric ID of the task to replace"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "done"],
+                "properties": {
+                  "title": { "type": "string", "example": "Completely New Task Title" },
+                  "done": { "type": "boolean", "example": false }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task successfully replaced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Replaced" },
+                    "task": { "$ref": "#/components/schemas/Task" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Missing or invalid required fields" },
+          "404": { "description": "Task ID not found" }
+        }
+      },
+      "patch": {
+        "summary": "Update a task partially",
+        "description": "Allows individual updates to either 'title', 'done', or both fields inside the task object parameter space.",
+        "parameters": [
+          { 
+            "name": "id", 
+            "in": "path", 
+            "required": true, 
+            "schema": { "type": "integer" },
+            "description": "The numeric ID of the task to modify"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "example": "Updated assignment name" },
+                  "done": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Updated" },
+                    "task": { "$ref": "#/components/schemas/Task" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Task ID not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a task by ID",
+        "description": "Permanently destroys the targeted task resource inside the backend tracking index array.",
+        "parameters": [
+          { 
+            "name": "id", 
+            "in": "path", 
+            "required": true, 
+            "schema": { "type": "integer" },
+            "description": "The numeric ID of the task to delete"
+          }
+        ],
+        "responses": {
+          "200": { 
+            "description": "Task successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Deleted" },
+                    "message": { "type": "string", "example": "Task deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Task ID not found" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "exam prep"
+          },
+          "done": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      }
+    }
+  }
+}
